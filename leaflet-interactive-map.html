@@ -1,0 +1,65 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Interactive Map Example</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    #map { height: 600px; }
+    .layer-toggle {
+      background: white;
+      padding: 5px;
+      border-radius: 4px;
+      font-family: sans-serif;
+    }
+  </style>
+</head>
+<body>
+  <h2 style="text-align:center">Interactive Map with Toggleable Layers</h2>
+  <div id="map"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    const map = L.map('map').setView([45.4215, -75.6972], 5); // Centered over Canada
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: 'Map data © <a href="https://openstreetmap.org">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    // --- Sample Data ---
+    const educationLayerGroup = L.layerGroup([
+      L.marker([43.6532, -79.3832]).bindPopup('School in Toronto'),
+      L.marker([45.5017, -73.5673]).bindPopup('College in Montreal')
+    ]);
+
+    const healthLayerGroup = L.layerGroup([
+      L.circle([49.2827, -123.1207], { color: 'red', radius: 50000 }).bindPopup('Hospital in Vancouver'),
+      L.circle([46.8139, -71.2080], { color: 'red', radius: 50000 }).bindPopup('Clinic in Quebec City')
+    ]);
+
+    const environmentLayerGroup = L.layerGroup([
+      L.polygon([[50.4501, -104.6178], [50.5, -104.6], [50.4, -104.5]], { color: 'green' }).bindPopup('Protected Area in Regina'),
+      L.marker([44.2312, -76.4860], {
+        icon: L.icon({
+          iconUrl: 'https://leafletjs.com/examples/custom-icons/leaf-green.png',
+          iconSize: [38, 95]
+        })
+      }).bindPopup('Park in Kingston')
+    ]);
+
+    // --- Layer Controls ---
+    const overlays = {
+      "Education": educationLayerGroup,
+      "Health Services": healthLayerGroup,
+      "Environment Projects": environmentLayerGroup
+    };
+
+    L.control.layers(null, overlays, { collapsed: false }).addTo(map);
+
+    // Optional: Turn on one layer by default
+    educationLayerGroup.addTo(map);
+  </script>
+</body>
+</html>
