@@ -28,26 +28,23 @@
       attribution: 'Map data © <a href="https://openstreetmap.org">OpenStreetMap</a> contributors'
     }).addTo(map);
 
-    // --- Sample Data ---
-    const educationLayerGroup = L.layerGroup([
-      L.marker([43.6532, -79.3832]).bindPopup('School in Toronto'),
-      L.marker([45.5017, -73.5673]).bindPopup('College in Montreal')
-    ]);
+    fetch("https://script.google.com/macros/s/AKfycbyWnGFSIRwg-HBve8_g-8k9qWeUdhS-Gjj-NdSDGrmRIowbIRWtClDd_icNgOH0sLzW/exec")
+  .then(res => res.json())
+  .then(data => {
+    data.forEach(entry => {
+      if (entry.Geolocation) {
+        const [lat, lng] = entry.Geolocation.split(',').map(Number);
+        const marker = L.marker([lat, lng]).addTo(map);
+        marker.bindPopup(`
+          <strong>${entry.Name}</strong><br>
+          ${entry.Title}<br>
+          <a href="${entry.Link}" target="_blank">View Opportunity</a><br>
+          ${entry.Location}
+        `);
+      }
+    });
+  });
 
-    const healthLayerGroup = L.layerGroup([
-      L.circle([49.2827, -123.1207], { color: 'red', radius: 50000 }).bindPopup('Hospital in Vancouver'),
-      L.circle([46.8139, -71.2080], { color: 'red', radius: 50000 }).bindPopup('Clinic in Quebec City')
-    ]);
-
-    const environmentLayerGroup = L.layerGroup([
-      L.polygon([[50.4501, -104.6178], [50.5, -104.6], [50.4, -104.5]], { color: 'green' }).bindPopup('Protected Area in Regina'),
-      L.marker([44.2312, -76.4860], {
-        icon: L.icon({
-          iconUrl: 'https://leafletjs.com/examples/custom-icons/leaf-green.png',
-          iconSize: [38, 95]
-        })
-      }).bindPopup('Park in Kingston')
-    ]);
 
     // --- Layer Controls ---
     const overlays = {
