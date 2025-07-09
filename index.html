@@ -22,41 +22,53 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    const map = L.map('map').setView([45.4215, -75.6972], 5); // Centered over Canada
+  const map = L.map('map').setView([45.4215, -75.6972], 5);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: 'Map data © <a href="https://openstreetmap.org">OpenStreetMap</a> contributors'
-    }).addTo(map);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: 'Map data © <a href="https://openstreetmap.org">OpenStreetMap</a> contributors'
+  }).addTo(map);
 
-    fetch("https://script.google.com/macros/s/AKfycbyWnGFSIRwg-HBve8_g-8k9qWeUdhS-Gjj-NdSDGrmRIowbIRWtClDd_icNgOH0sLzW/exec")
-  .then(res => res.json())
-  .then(data => {
-    data.forEach(entry => {
-      if (entry.Geolocation) {
+  // Icons
+  const redIcon = L.icon({ /* redIcon config here */ });
+  const greenIcon = L.icon({ /* greenIcon config here */ });
+
+  // Layer groups
+  const jobBoardGroup = L.layerGroup();
+  const careerResourcesGroup = L.layerGroup();
+  const communityResourcesGroup = L.layerGroup();
+
+  const overlays = {
+    "Job Board": jobBoardGroup,
+    "Career Resources": careerResourcesGroup,
+    "Community Resources": communityResourcesGroup
+  };
+
+  L.control.layers(null, overlays, { collapsed: false }).addTo(map);
+  jobBoardGroup.addTo(map); // Default group
+
+  // Fetch data from Google Sheets
+  fetch("https://script.google.com/macros/s/AKfycbyWnGFSIRwg-HBve8_g-8k9qWeUdhS-Gjj-NdSDGrmRIowbIRWtClDd_icNgOH0sLzW/exec")
+    .then(res => res.json())
+    .then(data => {
+      data.forEach(entry => {
+        if (!entry.Geolocation) return;
+
         const [lat, lng] = entry.Geolocation.split(',').map(Number);
-        const marker = L.marker([lat, lng]).addTo(map);
-        marker.bindPopup(`
-          <strong>${entry.Name}</strong><br>
-          ${entry.Title}<br>
-          <a href="${entry.Link}" target="_blank">View Opportunity</a><br>
-          ${entry.Location}
-        `);
-      }
+        const popup = `<strong>${entry.Name}</strong><br>${entry.Title}<br><a href="${entry.Link}" target="_blank">View</a><br>${entry.Location}`;
+
+        if (entry.Notes === "Job Board") {
+          L.marker([lat, lng]).bindPopup(popup).addTo(jobBoardGroup);
+        } else if (entry.Notes === "Career Resources") {
+          L.marker([lat, lng], { icon: redIcon }).bindPopup(popup).addTo(careerResourcesGroup);
+        } else if (entry.Notes === "Community Resources") {
+          L.marker([lat, lng], { icon: greenIcon }).bindPopup(popup).addTo(communityResourcesGroup);
+        }
+      });
+    })
+    .catch(err => {
+      console.error("Failed to fetch sheet data:", err);
     });
-  });
+</script>
 
-
-    // --- Layer Controls ---
-    const overlays = {
-      "Education": educationLayerGroup,
-      "Health Services": healthLayerGroup,
-      "Environment Projects": environmentLayerGroup
-    };
-
-    L.control.layers(null, overlays, { collapsed: false }).addTo(map);
-
-    // Optional: Turn on one layer by default
-    educationLayerGroup.addTo(map);
-  </script>
 </body>
 </html>
