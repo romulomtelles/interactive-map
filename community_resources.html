@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Community Resources</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #fffbea;
+      margin: 0;
+      padding: 2rem;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    h1 {
+      width: 100%;
+      text-align: center;
+      font-size: 2rem;
+      color: #222;
+      margin: 0 0 1rem 0;
+    }
+
+    .filter-container {
+      margin-left: auto;
+      margin-bottom: 1rem;
+    }
+
+    select {
+      padding: 0.4rem 0.8rem;
+      font-size: 1rem;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      background-color: #fff;
+      width: 80%;
+    }
+
+    #guest-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      margin-top: 1rem;
+    }
+
+    .card {
+      background-color: #fff;
+      border-radius: 10px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      border: 1px solid #f0c800;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .category {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #222;
+      text-align: center;
+      margin-bottom: 0.8rem;
+    }
+
+    .title {
+      font-size: 1.3rem;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 1rem;
+      color: #000;
+    }
+
+    .note {
+      font-size: 1rem;
+      color: #333;
+      margin-bottom: 1rem;
+      line-height: 1.4;
+    }
+
+    .link-btn {
+      margin-top: auto;
+      text-align: center;
+    }
+
+    .link-btn a {
+      display: inline-block;
+      padding: 0.6rem 1.2rem;
+      background-color: #e89825;
+      color: black;
+      text-decoration: none;
+      border-radius: 5px;
+      font-weight: 500;
+      border: 1px solid #ccc;
+      transition: background-color 0.3s ease;
+    }
+
+    .link-btn a:hover {
+      background-color: #f5c000;
+    }
+  </style>
+</head>
+<body>
+<div class="top-bar">
+    <span>📞 1.705.444.2012</span>
+    <span> </span>
+  </div>
+
+  <header class="main-header">
+    <img src="https://www.elephantthoughts.com/wp-content/uploads/2020/05/ET-Horz-colour-w-tag.png" alt="Elephant Thoughts Logo" class="logo"/>
+    <nav class="nav-bar">
+      <a href="index.html">Home</a>
+      <a href="job_board.html">Job Board</a>
+      <a href="career_resources.html">Career Resources</a>
+      <a href="community_resources.html">Community Resources</a>
+      <a href="#">About Us</a>
+    </nav>
+    <!-- <button class="donate-btn">LOG IN</button> -->
+  </header>
+  <header>
+    <h1>Community Resources</h1>
+    <div class="filter-container">
+      <label for="categoryFilter" style="font-weight: bold; margin-right: 0.5rem;">Category:</label>
+      <select id="categoryFilter">
+        <option value="All">All</option>
+      </select>
+    </div>
+  </header>
+
+  <div id="guest-list"></div>
+
+  <script>
+    const sheetURL = "https://script.google.com/macros/s/AKfycbzEex_KiAiVtIz86H6SKtbYykzLGs1TlOM6knZNYHEevnfrfzD8xcFGKTod_xLAN-Q6/exec?sheet=Community%20Resources";
+    const guestList = document.getElementById("guest-list");
+    const categoryFilter = document.getElementById("categoryFilter");
+
+    let allDocs = [];
+
+    fetch(sheetURL)
+      .then(res => res.json())
+      .then(data => {
+        allDocs = data;
+        const categorySet = new Set();
+
+        data.forEach(doc => {
+          if (doc.Name) categorySet.add(doc.Name);
+        });
+
+        categoryFilter.innerHTML = '<option value="All">All</option>';
+        Array.from(categorySet).sort().forEach(category => {
+          const option = document.createElement("option");
+          option.value = category;
+          option.textContent = category;
+          categoryFilter.appendChild(option);
+        });
+
+        renderList();
+      })
+      .catch(err => {
+        guestList.innerHTML = `<p style="color:red">❌ Failed to load Community Resources data.</p>`;
+        console.error("Error fetching sheet data:", err);
+      });
+
+    categoryFilter.addEventListener("change", renderList);
+
+    function renderList() {
+      const selectedCategory = categoryFilter.value;
+      guestList.innerHTML = "";
+
+      allDocs
+        .filter(doc => {
+  const name = typeof doc.Name === "string" ? doc.Name.trim().toLowerCase() : String(doc.Name || "").toLowerCase();
+  return selectedCategory === "All" || name === selectedCategory.trim().toLowerCase();
+})
+        .forEach(data => {
+          const card = document.createElement("div");
+          card.className = "card";
+
+          const category = document.createElement("div");
+          category.className = "category";
+          category.textContent = data.Name || "Category";
+
+          const title = document.createElement("div");
+          title.className = "title";
+          title.textContent = data.Title || "";
+
+          const note = document.createElement("div");
+          note.className = "note";
+          note.textContent = data.Notes || "";
+
+          const linkBtn = document.createElement("div");
+          linkBtn.className = "link-btn";
+          if (data.Link) {
+            const link = document.createElement("a");
+            link.href = data.Link.startsWith("http") ? data.Link : `https://${data.Link}`;
+            link.target = "_blank";
+            link.textContent = "View Opportunity";
+            linkBtn.appendChild(link);
+          }
+
+          card.appendChild(category);
+          card.appendChild(title);
+          card.appendChild(note);
+          card.appendChild(linkBtn);
+          guestList.appendChild(card);
+        });
+    }
+  </script>
+
+</body>
+</html>
